@@ -642,99 +642,99 @@ class HEPAugFoldYielder(FoldYielder):
         return self._append_matrix(data, idx) if self.has_matrix and self.yield_matrix else data
 
 
-class TorchGeometricFoldYielder(FoldYielder):
-    r'''
-    Interface class for accessing data from PyTorch Geometric datasets.
-    Dataset will be split into sub-folds; either provide a value for the `fold_indices` argument with your own split as a list of lists of indices,
-    or specify the number of folds for a random split (`n_folds`)
+# class TorchGeometricFoldYielder(FoldYielder):
+#     r'''
+#     Interface class for accessing data from PyTorch Geometric datasets.
+#     Dataset will be split into sub-folds; either provide a value for the `fold_indices` argument with your own split as a list of lists of indices,
+#     or specify the number of folds for a random split (`n_folds`)
     
-    ..warning::
-        Much functionality has yet to be implemented for this class
+#     ..warning::
+#         Much functionality has yet to be implemented for this class
 
-    Arguments:
-        dataset: PyTorch Geometric Dataset containing inputs, weights, and targets
-        n_folds: number of folds in which to randomly split the dataset. Must provide either this or `fold_indices`
-        fold_indices: list of lists of indices; each list of indices is a fold. Must provide either this or `n_folds`
-        shuffle: if no `fold_indeces` are provided, data will be split into the speified number of folds.
-            This controls whether the indeces will be shuffled beforehand or not.
-        seed: if no `fold_indeces` are provided, data will be split into the speified number of folds.
-            This sets the random seed used for shuffling, if requested.
-        batch_yielder_type: Class of :class:`~lumin.nn.data.batch_yielder.BatchYielder` to instantiate to yield inputs
-    '''
+#     Arguments:
+#         dataset: PyTorch Geometric Dataset containing inputs, weights, and targets
+#         n_folds: number of folds in which to randomly split the dataset. Must provide either this or `fold_indices`
+#         fold_indices: list of lists of indices; each list of indices is a fold. Must provide either this or `n_folds`
+#         shuffle: if no `fold_indeces` are provided, data will be split into the speified number of folds.
+#             This controls whether the indeces will be shuffled beforehand or not.
+#         seed: if no `fold_indeces` are provided, data will be split into the speified number of folds.
+#             This sets the random seed used for shuffling, if requested.
+#         batch_yielder_type: Class of :class:`~lumin.nn.data.batch_yielder.BatchYielder` to instantiate to yield inputs
+#     '''
 
-    from torch_geometric.data import Dataset
-    from .batch_yielder import TorchGeometricBatchYielder
+#     from torch_geometric.data import Dataset
+#     from .batch_yielder import TorchGeometricBatchYielder
 
-    def __init__(self, dataset:Dataset, n_folds:Optional[int], fold_indices:Optional[List[List[int]]]=None, shuffle:bool=True, seed:Optional[int]=None,
-                 batch_yielder_type:Type[BatchYielder]=TorchGeometricBatchYielder):
-        self.dataset = dataset
-        self.batch_yielder_type = batch_yielder_type
-        self._set_folds(n_folds, fold_indices, shuffle, seed)
+#     def __init__(self, dataset:Dataset, n_folds:Optional[int], fold_indices:Optional[List[List[int]]]=None, shuffle:bool=True, seed:Optional[int]=None,
+#                  batch_yielder_type:Type[BatchYielder]=TorchGeometricBatchYielder):
+#         self.dataset = dataset
+#         self.batch_yielder_type = batch_yielder_type
+#         self._set_folds(n_folds, fold_indices, shuffle, seed)
         
-        self.cont_feats,self.cat_feats,self.input_pipe,self.output_pipe = [],[],None,None
-        self.yield_matrix,self.matrix_pipe = True,None
-        self.augmented,self.aug_mult,self.train_time_aug,self.test_time_aug = False,0,False,False
-        self.input_feats = self.cont_feats + self.cat_feats
-        self.orig_cont_feats,self.orig_cat_feat,self._ignore_feats = self.cont_feats,self.cat_feats,[]
+#         self.cont_feats,self.cat_feats,self.input_pipe,self.output_pipe = [],[],None,None
+#         self.yield_matrix,self.matrix_pipe = True,None
+#         self.augmented,self.aug_mult,self.train_time_aug,self.test_time_aug = False,0,False,False
+#         self.input_feats = self.cont_feats + self.cat_feats
+#         self.orig_cont_feats,self.orig_cat_feat,self._ignore_feats = self.cont_feats,self.cat_feats,[]
         
-    def __repr__(self) -> str: return f'FoldYielder with {self.n_folds} folds'
+#     def __repr__(self) -> str: return f'FoldYielder with {self.n_folds} folds'
     
-    def __len__(self) -> int: return self.n_folds
+#     def __len__(self) -> int: return self.n_folds
     
-    def __getitem__(self, idx:int) -> Dataset: return self.get_fold(idx)
+#     def __getitem__(self, idx:int) -> Dataset: return self.get_fold(idx)
     
-    def __iter__(self) -> Dataset:
-        for i in range(self.n_folds): yield self.get_fold(i)
+#     def __iter__(self) -> Dataset:
+#         for i in range(self.n_folds): yield self.get_fold(i)
             
-    def _set_folds(self, n_folds:Optional[int], fold_indices:Optional[List[List[int]]]=None, shuffle:bool=True, seed:Optional[int]=None) -> None:
-        if fold_indices is None:
-            kf = KFold(n_splits=n_folds, shuffle=shuffle, random_state=seed)
-            fold_indices = [f[1] for f in kf.split(X=np.arange(len(self.dataset)))]
-            self.n_folds = n_folds
-        else:
-            self.n_folds = len(fold_indices)
+#     def _set_folds(self, n_folds:Optional[int], fold_indices:Optional[List[List[int]]]=None, shuffle:bool=True, seed:Optional[int]=None) -> None:
+#         if fold_indices is None:
+#             kf = KFold(n_splits=n_folds, shuffle=shuffle, random_state=seed)
+#             fold_indices = [f[1] for f in kf.split(X=np.arange(len(self.dataset)))]
+#             self.n_folds = n_folds
+#         else:
+#             self.n_folds = len(fold_indices)
         
-        self.fold_indices = fold_indices
-        self.fld_szs = {i:len(f) for i,f in enumerate(self.fold_indices)}
+#         self.fold_indices = fold_indices
+#         self.fld_szs = {i:len(f) for i,f in enumerate(self.fold_indices)}
 
-    def columns(self) -> List[str]:
-        raise NotImplementedError()
+#     def columns(self) -> List[str]:
+#         raise NotImplementedError()
 
-    def add_ignore(self, feats:Union[str,List[str]]) -> None:
-        raise NotImplementedError()
+#     def add_ignore(self, feats:Union[str,List[str]]) -> None:
+#         raise NotImplementedError()
 
-    def _set_foldfile(self, foldfile:Union[str,Path,h5py.File]) -> None:
-        raise NotImplementedError()
+#     def _set_foldfile(self, foldfile:Union[str,Path,h5py.File]) -> None:
+#         raise NotImplementedError()
     
-    def _append_matrix(self, data, idx) -> Dict[str,np.ndarray]:
-        raise NotImplementedError()
+#     def _append_matrix(self, data, idx) -> Dict[str,np.ndarray]:
+#         raise NotImplementedError()
 
-    def close(self) -> None:
-        pass
+#     def close(self) -> None:
+#         pass
 
-    def get_fold(self, idx:int) -> Dict[str,np.ndarray]:
-        r'''
-        Get data for single fold. Data consists of a slice of a PyTorch Geometric Dataset.
+#     def get_fold(self, idx:int) -> Dict[str,np.ndarray]:
+#         r'''
+#         Get data for single fold. Data consists of a slice of a PyTorch Geometric Dataset.
 
-        Arguments:
-            idx: fold index to load
+#         Arguments:
+#             idx: fold index to load
 
-        Returns:
-            PyTorch Geometric Dataset slice
-        '''
+#         Returns:
+#             PyTorch Geometric Dataset slice
+#         '''
 
-        return {'inputs':self.dataset[self.fold_indices[idx]]}
+#         return {'inputs':self.dataset[self.fold_indices[idx]]}
 
-    def get_column(self, column:str, n_folds:Optional[int]=None, fold_idx:Optional[int]=None, add_newaxis:bool=False) -> Union[np.ndarray, None]:
-        raise NotImplementedError()
+#     def get_column(self, column:str, n_folds:Optional[int]=None, fold_idx:Optional[int]=None, add_newaxis:bool=False) -> Union[np.ndarray, None]:
+#         raise NotImplementedError()
 
-    def get_data(self, n_folds:Optional[int]=None, fold_idx:Optional[int]=None) -> Dict[str,np.ndarray]:
-        raise NotImplementedError()
+#     def get_data(self, n_folds:Optional[int]=None, fold_idx:Optional[int]=None) -> Dict[str,np.ndarray]:
+#         raise NotImplementedError()
 
-    def get_df(self, pred_name:str='pred', targ_name:str='targets', wgt_name:str='weights', n_folds:Optional[int]=None, fold_idx:Optional[int]=None,
-               inc_inputs:bool=False, inc_ignore:bool=False, deprocess:bool=False, verbose:bool=True, suppress_warn:bool=False,
-               nan_to_num:bool=False, inc_matrix:bool=False) -> pd.DataFrame:
-        raise NotImplementedError()
+#     def get_df(self, pred_name:str='pred', targ_name:str='targets', wgt_name:str='weights', n_folds:Optional[int]=None, fold_idx:Optional[int]=None,
+#                inc_inputs:bool=False, inc_ignore:bool=False, deprocess:bool=False, verbose:bool=True, suppress_warn:bool=False,
+#                nan_to_num:bool=False, inc_matrix:bool=False) -> pd.DataFrame:
+#         raise NotImplementedError()
 
-    def save_fold_pred(self, pred:np.ndarray, fold_idx:int, pred_name:str='pred') -> None:
-        raise NotImplementedError()
+#     def save_fold_pred(self, pred:np.ndarray, fold_idx:int, pred_name:str='pred') -> None:
+#         raise NotImplementedError()
