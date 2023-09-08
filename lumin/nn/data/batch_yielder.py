@@ -104,54 +104,54 @@ class BatchYielder:
             else:                          return (self.inputs, self.matrix_inputs)
 
 
-class TorchGeometricBatchYielder(BatchYielder):
-    r'''
-    :class:`~lumin.nn.data.batch_yielder.BatchYielder` for PyTorch Geometric data. kwargs for compatibility only.
+# class TorchGeometricBatchYielder(BatchYielder):
+#     r'''
+#     :class:`~lumin.nn.data.batch_yielder.BatchYielder` for PyTorch Geometric data. kwargs for compatibility only.
     
-    Arguments:
-        inputs: PyTorch Geometric Dataset containing inputs, weights, and targets
-        bs: batchsize, number of data to include per minibatch
-        shuffle: whether to shuffle the data at the beginning of an iteration
-        exclude_keys: data keys to exclude from inputs
-    '''
+#     Arguments:
+#         inputs: PyTorch Geometric Dataset containing inputs, weights, and targets
+#         bs: batchsize, number of data to include per minibatch
+#         shuffle: whether to shuffle the data at the beginning of an iteration
+#         exclude_keys: data keys to exclude from inputs
+#     '''
 
-    from torch_geometric.data import Dataset
+#     from torch_geometric.data import Dataset
 
-    def __init__(self, inputs: Dataset, bs:int, shuffle:bool=True, exclude_keys:Optional[List[str]]=None, use_weights:bool=True, **kwargs:Any):
-        from torch_geometric.loader import DataLoader
-        self.loader = DataLoader(inputs, batch_size=bs, shuffle=shuffle, exclude_keys=exclude_keys)
-        self.use_weights = use_weights
+#     def __init__(self, inputs: Dataset, bs:int, shuffle:bool=True, exclude_keys:Optional[List[str]]=None, use_weights:bool=True, **kwargs:Any):
+#         from torch_geometric.loader import DataLoader
+#         self.loader = DataLoader(inputs, batch_size=bs, shuffle=shuffle, exclude_keys=exclude_keys)
+#         self.use_weights = use_weights
 
-    def __iter__(self) -> Tuple[Dict[str, Tensor], Dict[str, Tensor], Optional[Dict[str, Tensor]]]:
-        r'''
-        Iterate through data in batches.
+#     def __iter__(self) -> Tuple[Dict[str, Tensor], Dict[str, Tensor], Optional[Dict[str, Tensor]]]:
+#         r'''
+#         Iterate through data in batches.
 
-        Returns:
-            tuple of batches of inputs, targets, and weights as dictionaries of tensors on device
-        '''
+#         Returns:
+#             tuple of batches of inputs, targets, and weights as dictionaries of tensors on device
+#         '''
         
-        for batch in self.loader:
-            batch = to_device(batch)
-            x = {k: batch[k] for k in batch.keys if k not in ['y', 'ptr']}
-            y = {'y': batch.y, 'batch': batch.batch}
-            w = {'weight': batch.weight, 'batch': batch.batch} if 'weight' in batch.keys and self.use_weights else None
-            yield x, y, w
+#         for batch in self.loader:
+#             batch = to_device(batch)
+#             x = {k: batch[k] for k in batch.keys if k not in ['y', 'ptr']}
+#             y = {'y': batch.y, 'batch': batch.batch}
+#             w = {'weight': batch.weight, 'batch': batch.batch} if 'weight' in batch.keys and self.use_weights else None
+#             yield x, y, w
 
-    def __len__(self): return len(self.loader)
+#     def __len__(self): return len(self.loader)
 
-    def get_inputs(self, on_device:bool=False) -> Union[Tensor, Tuple[Tensor,Tensor]]:
-        r'''
-        Returns all data.
+#     def get_inputs(self, on_device:bool=False) -> Union[Tensor, Tuple[Tensor,Tensor]]:
+#         r'''
+#         Returns all data.
         
-        Arguments:
-            on_device: whether to place tensor on device
+#         Arguments:
+#             on_device: whether to place tensor on device
 
-        Returns:
-            tuple of inputs, targets, and weights as dictionaries of tensors on device
-        '''
+#         Returns:
+#             tuple of inputs, targets, and weights as dictionaries of tensors on device
+#         '''
         
-        if on_device:
-            x = {k: to_device(self.loader.dataset[k]) for k in self.loader.dataset.keys if k not in ['y', 'ptr']}
-        else:
-            x = {k: self.loader.dataset[k] for k in self.loader.dataset.keys if k not in ['y', 'ptr']}
-        return x
+#         if on_device:
+#             x = {k: to_device(self.loader.dataset[k]) for k in self.loader.dataset.keys if k not in ['y', 'ptr']}
+#         else:
+#             x = {k: self.loader.dataset[k] for k in self.loader.dataset.keys if k not in ['y', 'ptr']}
+#         return x
