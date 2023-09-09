@@ -77,8 +77,8 @@ class FoldYielder:
         Returns:
             list of columns present in foldfile
         '''
-
-        return [k for k in self.foldfile["fold_0"].keys()]
+        # just pick the first available fold to get column names
+        return [k for k in self.foldfile[[fold_name for fold_name in self.foldfile.keys() if fold_name != 'meta_data'][0]].keys()]
 
     def add_ignore(self, feats:Union[str,List[str]]) -> None:
         r'''
