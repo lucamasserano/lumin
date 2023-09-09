@@ -8,7 +8,7 @@ from ...utils.misc import to_device
 
 from torch import Tensor
 
-__all__ = ['BatchYielder', 'TorchGeometricBatchYielder']
+__all__ = ['BatchYielder']
 
 
 class BatchYielder:

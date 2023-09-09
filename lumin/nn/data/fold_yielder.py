@@ -15,7 +15,7 @@ from sklearn.model_selection import KFold
 
 from .batch_yielder import BatchYielder
 
-__all__ = ['FoldYielder', 'HEPAugFoldYielder', 'TorchGeometricFoldYielder']
+__all__ = ['FoldYielder', 'HEPAugFoldYielder']
 
 
 class FoldYielder:
